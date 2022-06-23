@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ping.mapper.UserMapper">
+
+	<!-- 根据用户名查询该用户是否存在 -->
+	<select id="checkUserIsExist" parameterType="String" resultType="Long">
+		select count(*) from user where username = #{username}
+	</select>
+
+    <!-- 用户注册，添加用户 -->
+    <insert id="addRegisterInfo" parameterType="User" >
+         insert into user(username,password,name,sex,birthday,telephone,email,address,userimg) values(#{username},#{password},#{name},#{sex},#{birthday},#{telephone},#{email},#{address},#{userimg})
+    </insert>
+    
+    <!-- 用户登录 -->
+    <select id="selectByUserNameAndPassword" parameterType="User" resultType="User">
+      select * from user where username=#{username} and password=#{password}
+    </select>
+    
+    <!-- 修改密码-->
+   <update id="updateChangePassword" parameterType="User">
+      update user set password=#{password} where uid=#{uid}
+   </update>
+   
+   <!-- 查询用户收货地址信息 -->
+   <!-- 用户登录 -->
+    <select id="selectUserShippingInfo" parameterType="Integer" resultType="Shipping">
+      select * from shipping where uid=#{uid} 
+    </select>
+    
+   <!-- 更新收货地址-->
+   <update id="updateShippingInfo" parameterType="Shipping">
+      update shipping set 
+      receiver_name=#{receiver_name},
+      receiver_phone=#{receiver_phone},
+      receiver_province=#{receiver_province},
+      receiver_city=#{receiver_city},
+      receiver_district=#{receiver_district},
+      receiver_address=#{receiver_address} 
+      where id=#{id}
+   </update>
+   
+   <!-- 添加收货地址信息 -->
+    <insert id="saveShippingInfo" parameterType="Shipping" >
+         insert into shipping(uid,receiver_name,receiver_phone,receiver_province,receiver_city,receiver_district,receiver_address,default_flag) 
+         values(#{uid},#{receiver_name},#{receiver_phone},#{receiver_province},#{receiver_city},#{receiver_district},#{receiver_address},#{default_flag})
+    </insert>
+    
+    <!-- 更新用户头像-->
+   <update id="updateUserImg" parameterType="User">
+      update user set userimg=#{userimg} where uid=#{uid}
+   </update>
+   
+   <!-- 查询用户所有收货地址信息 -->
+    <select id="selectUserAllShipping" parameterType="Integer" resultType="Shipping">
+      select * from shipping where uid=#{uid} 
+    </select>
+    
+    <!-- 更新收货地址是否为默认-->
+   <update id="updateShipDefaultFlag" parameterType="Shipping">
+      update shipping set default_flag=#{default_flag} where id=#{id}
+   </update>
+   
+   <!-- 删除收货地址-->
+   <delete id="deleteShip" parameterType="Shipping">
+      delete from shipping where id=#{id}
+   </delete>
+   
+    <!-- 根据id查询用户收货地址信息 -->
+    <select id="selectUserShippingInfoById" parameterType="Shipping" resultType="Shipping">
+      select * from shipping where id=#{id} 
+    </select>
+    
+    
+    <!-- 个人资料修改 -->
+    <update id="updateUserInfo" parameterType="User">
+      update user set 
+      password=#{password},
+      name=#{name},
+      sex=#{sex},
+      birthday=#{birthday}, 
+      telephone=#{telephone},
+      email=#{email},
+      address=#{address}
+      where uid=#{uid}
+    </update>
+    
+    <!-- 根据uid查询用户信息 -->
+    <select id="selectUserById" parameterType="Integer" resultType="User">
+      select * from user where uid=#{uid} 
+    </select>
+</mapper>

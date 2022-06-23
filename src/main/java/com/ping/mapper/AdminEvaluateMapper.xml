@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ping.mapper.AdminEvaluateMapper">
+
+   <!-- 手动映射结果类型,将查询的商品评价封装到对象里面的属性 -->
+   <resultMap type="Evaluate" id="BaseResultMapJoinObj">
+       <id column="eva_Id" property="eva_Id"/>
+       <result column="eva_Content" property="eva_Content"/>
+       <result column="eva_Date" property="eva_Date"/>
+       <result column="eva_State" property="eva_State"/>
+       <result column="eva_level" property="eva_level"/>
+      <!-- 以上对查询结果和类的属性对应的字段进行匹配 -->
+      <!-- 其他引用类型是表与表外键的封装的类进行匹配 ，商品评价表和用户表一对一-->
+      <association property="evaUser" javaType="User">
+            <id column="uid" property="uid"/>
+            <result column="username" property="username"/>
+            <result column="password" property="password"/>
+            <result column="name" property="name"/>
+            <result column="sex" property="sex"/>
+            <result column="birthday" property="birthday"/>
+            <result column="telephone" property="telephone"/>
+            <result column="email" property="email"/>
+            <result column="address" property="address"/>
+            <result column="userimg" property="userimg"/>
+      </association>
+      
+      <association property="product" javaType="Product">
+	       <!-- column代表数据库表字段， property代表实体类的属性-->
+	       <id column="pid" property="pid"/>
+	       <result column="pname" property="pname"/>
+	       <result column="market_price" property="market_price"/>
+	       <result column="shop_price" property="shop_price"/>
+	       <result column="pimage" property="pimage"/>
+	       <result column="pdate" property="pdate"/>
+	       <result column="is_hot" property="is_hot"/>
+	       <result column="pdesc" property="pdesc"/>
+	       <result column="pflag" property="pflag"/>
+	       <result column="stock" property="stock"/>
+	       <result column="volume" property="volume"/>
+      </association>
+   
+   </resultMap>
+
+	<select id="findAllEvalute" resultMap="BaseResultMapJoinObj">
+		select * from evaluate e left join user u 
+      	on e.eva_uid=u.uid left join product p on e.eva_pid=p.pid where eva_state &gt; 0
+	</select>
+	<select id="findAllEvaluteLikeContent" parameterType="java.lang.String" resultMap="BaseResultMapJoinObj">
+		select * from evaluate e left join user u 
+      	on e.eva_uid=u.uid left join product p on e.eva_pid=p.pid where eva_state &gt; 0 and eva_content like '%${value}%'
+	</select>
+	
+	<select id="findEvaById" parameterType="java.lang.Integer" resultMap="BaseResultMapJoinObj">
+		select * from evaluate where eva_Id=#{evaId}
+	</select>
+	
+	<update id="deleteEvaluate" parameterType="java.lang.Integer">
+		update evaluate set eva_state=-1 where eva_id=#{id}
+	</update>
+</mapper>

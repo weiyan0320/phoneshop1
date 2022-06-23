@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ping.mapper.AdminOrderMapper">
+	<select id="findTotalOrder" resultType="java.lang.Integer">
+		SELECT count(oid) total from `orders`
+	</select>
+	<select id="findTotalDeliverOrder" resultType="java.lang.Integer" parameterType="java.lang.Integer">
+		select count(oid) num FROM `orders` where status=#{status};
+	</select>
+	<resultMap type="com.ping.common.utils.OrderVO" id="Base">
+		<result property="totalMoney" column="totalMoney" javaType="java.lang.Long" />
+		<result property="orderMonth" column="orderMonth" javaType="java.lang.String" />
+		<result property="sheets" column="sheets" javaType="java.lang.Integer" />
+	</resultMap>
+	<select id="findTotalMoneyByMonth" parameterType="java.lang.Integer" resultMap="Base">
+		select sum(total) as totalMoney,date_format(ordertime, '%Y-%m') orderMonth, 
+		count(oid) as sheets from `orders` group by orderMonth ORDER BY orderMonth asc LIMIT 6
+	</select>
+	
+	
+	<resultMap type="Order" id="BaseResultMapJoinObj">
+       <id column="oid" property="oid"/>
+       <result column="ordertime" property="ordertime"/>
+       <result column="total" property="total"/>
+       <result column="payment_type" property="payment_type"/>
+       <result column="status" property="status"/>
+       <result column="receiver_name" property="receiver_name"/>
+       <result column="receiver_phone" property="receiver_phone"/>
+       <result column="receiver_address" property="receiver_address"/>
+       
+       <result column="payment_status" property="payment_status"/>
+       <result column="express_no" property="express_no"/>
+       <!-- 订单和商品是多对一 -->
+       <association property="user" javaType="User">
+          <id column="uid" property="uid"/>
+          <result column="username" property="username"/>
+          <result column="password" property="password"/>
+          <result column="name" property="name"/>
+          <result column="sex" property="sex"/>
+          <result column="birthday" property="birthday"/>
+          <result column="telephone" property="telephone"/>
+          <result column="email" property="email"/>
+          <result column="address" property="address"/>
+          <result column="userimg" property="userimg"/>
+       </association>
+   </resultMap>
+	<select id="findAllOrderBySearchVO" parameterType="com.ping.common.utils.OrderSearchVO" resultMap="BaseResultMapJoinObj">
+		select * from `orders` o left join user u on o.uid=u.uid
+		<where>
+			o.status &gt; 0
+			<if test="orderIdKeyword!=null and orderIdKeyword!=''">
+				and o.oid like '%${orderIdKeyword}%'
+			</if>
+			<if test="startDate!=null and startDate!=''">
+				<![CDATA[and DATE_FORMAT(o.ordertime,'%Y-%m-%d')>=#{startDate}]]>
+			</if>
+			<if test="endDate!=null and endDate!=''">
+				<![CDATA[and DATE_FORMAT(o.ordertime,'%Y-%m-%d')<=#{endDate}]]>
+			</if>
+			<if test="orderState!=null and orderState!=''">
+				and o.status=#{orderState}
+			</if>
+		</where>
+	</select>
+	
+	<select id="findAllOrder" resultMap="BaseResultMapJoinObj">
+		select * from `orders` o left join user u on o.uid=u.uid where o.status &gt; 0
+	</select>
+	
+	<select id="findOrderById" parameterType="java.lang.String" resultMap="BaseResultMapJoinObj">
+		select * from `orders` where oid=#{oid}
+	</select>
+	
+	<update id="deleteOrder" parameterType="java.lang.String">
+		update `orders` set status=-1 where oid=#{oid}
+	</update>
+	
+	<update id="deliverOrder" parameterType="java.lang.String">
+		update  `orders` set status=3,express_no=#{express_no} where oid=#{oid}
+	</update>
+</mapper>

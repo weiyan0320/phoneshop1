@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ping.mapper.EvaluateMapper">
+    <!-- 添加商品评价 -->
+    <insert id="addEvaluate" parameterType="Evaluate">
+		<selectKey resultType="java.lang.Integer" order="AFTER" keyProperty="eva_Id">
+          SELECT LAST_INSERT_ID()
+      	</selectKey>
+		insert into evaluate(eva_uid,eva_Content,eva_Date,eva_pid,eva_level)
+		values(#{evaUser.uid},#{eva_Content},#{eva_Date},#{product.pid},#{eva_level})
+	</insert>
+  
+	 <select id="findEvaByPid" parameterType="Integer" resultMap="evaluateinfo">
+      select * from 
+      evaluate e inner join user u 
+      on e.eva_uid=u.uid 
+      where e.eva_State=1 and eva_pid=#{pid}
+   </select>
+   <!-- 手动映射结果类型,将查询的商品评价封装到对象里面的属性 -->
+   <resultMap type="Evaluate" id="evaluateinfo">
+       <id column="eva_Id" property="eva_Id"/>
+       <result column="eva_Content" property="eva_Content"/>
+       <result column="eva_Date" property="eva_Date"/>
+       <result column="eva_State" property="eva_State"/>
+       <result column="eva_level" property="eva_level"/>
+      <!-- 以上对查询结果和类的属性对应的字段进行匹配 -->
+      <!-- 其他引用类型是表与表外键的封装的类进行匹配 ，商品评价表和用户表一对一-->
+      <association property="evaUser" javaType="User">
+            <id column="uid" property="uid"/>
+            <result column="username" property="username"/>
+            <result column="password" property="password"/>
+            <result column="name" property="name"/>
+            <result column="sex" property="sex"/>
+            <result column="birthday" property="birthday"/>
+            <result column="telephone" property="telephone"/>
+            <result column="email" property="email"/>
+            <result column="address" property="address"/>
+            <result column="userimg" property="userimg"/>
+      </association>
+   
+   </resultMap>
+</mapper>

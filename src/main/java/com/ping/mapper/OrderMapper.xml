@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ping.mapper.OrderMapper">
+
+   <!-- 将用户的订单信息插入订单表 -->
+   <insert id="insertOrder" parameterType="Order" >
+       insert into orders values(#{oid },#{ordertime},#{total},#{payment_type},#{status},#{receiver_name},#{receiver_phone},#{receiver_address},#{user.uid},#{payment_status},#{express_no})
+   </insert>
+   
+   <!-- 将用户提交订单信息插入订单项表 -->
+   <insert id="insertOrderItem" parameterType="OrderItem">
+       insert into orderitem(count,subtotal,pid,oid) values(#{count},#{subtotal},#{product.pid},#{order.oid})
+   </insert>
+   
+   
+   
+   <!-- 当用户点击,我的订单,分页查询该用户的订单信息 -->
+   
+   <!-- 查询用户订单的总条数 -->
+   <select id="selectOrderTotalCountByUid" parameterType="User" resultType="Integer">
+       select count(*) from orders where uid=#{uid}
+   </select>
+   
+   <!-- 根据用户的uid和当前页查询，该页用户的订单信息 ,当mybatis需要传输多个参数，这里就不用写参数的类型,还要根据订单时间进行降序排序-->
+   <select id="selectOrderByUidAndCurrentPage" resultType="Order">
+       <!-- 根据用户uid进行分页查询，按订单时间进行降序排序 -->
+       select * from orders where uid=#{uid} order by ordertime desc  limit #{currentStart},#{currentCount}
+   </select>
+   
+   <!-- 订单项表和商品表多表查询，需要自己对查询的结果进行手动映射 -->
+   <!-- 根据订单号oid查询所有该订单的订单项，还有商品的信息，订单项表和商品表两表查询 -->
+   <select id="selectOrderItemByOid" parameterType="String" resultMap="orderItem">
+      select * from 
+      orderitem o inner join product p 
+      on o.pid=p.pid 
+      where oid=#{oid}
+   </select>
+   <!-- 手动映射结果类型,将查询的订单项封装到订单项对象里面的属性 -->
+   <resultMap type="OrderItem" id="orderItem">
+       <id column="itemid" property="itemid"/>
+       <result column="count" property="count"/>
+       <result column="subtotal" property="subtotal"/>
+      <!-- 以上对查询结果和类的属性对应的字段进行匹配 -->
+      <!-- 其他引用类型是表与表外键的封装的类进行匹配 ，订单项表和商品表一对一-->
+      <association property="product" javaType="Product">
+            <id column="pid" property="pid"/>
+            <result column="pname" property="pname"/>
+            <result column="market_price" property="market_price"/>
+            <result column="shop_price" property="shop_price"/>
+            <result column="pimage" property="pimage"/>
+            <result column="pdate" property="pdate"/>
+            <result column="is_hot" property="is_hot"/>
+            <result column="pdesc" property="pdesc"/>
+            <result column="pcolor" property="pcolor"/>
+            <result column="pflag" property="pflag"/>
+      </association>
+   
+   </resultMap>
+   
+   
+   <!-- 根据订单号删除该订单 -->
+   <!-- 1.先根据订单号oid删除从表订单项表所有该订单的订单项记录 -->
+   <delete id="deleteOrderItemByOid" parameterType="String">
+       delete from orderitem where oid=#{oid}
+   </delete>
+    
+   <!-- 2.根据订单号oid删除订单表中该订单记录 -->
+   <delete id="deleteThisOrderByOid" parameterType="String">
+       delete from orders where oid=#{oid}
+   </delete>
+   
+   <!-- 查询用户（待付款，支付状态未付款，订单状态待付款）订单的总条数 (支付状态 1代表已付款，0代表未付款)-->  
+   <select id="selectReadyPayTotalCountByUid" parameterType="User" resultType="Integer">
+       select count(*) from orders where uid=#{uid} and status=1
+   </select>
+   <!-- 根据用户的uid和当前页查询，该页用户的（待付款）订单信息 ,当mybatis需要传输多个参数，这里就不用写参数的类型,还要根据订单时间进行降序排序-->
+   <select id="selectReadyPayOrderByUidAndCurrentPage" resultType="Order">
+       <!-- 根据用户uid进行分页查询，按订单时间进行降序排序 -->
+       select * from orders where uid=#{uid} and status=1 order by ordertime desc  limit #{currentStart},#{currentCount}
+   </select>
+   
+   <!-- 查询用户（待发货）订单的总条数，1，在线支付已付款-->
+   <select id="selectReadyToDeliverTotalCountByUid" parameterType="User" resultType="Integer">
+       select count(*) from orders where uid=#{uid} and status=2 
+   </select>
+   <!-- 根据用户的uid和当前页查询，该页用户的（待发货）订单信息 ,当mybatis需要传输多个参数，这里就不用写参数的类型,还要根据订单时间进行降序排序-->
+   <select id="selectReadyToDeliverOrderByUidAndCurrentPage" resultType="Order">
+       <!-- 根据用户uid进行分页查询，按订单时间进行降序排序 -->
+       select * from orders where uid=#{uid} and status=2  order by ordertime desc  limit #{currentStart},#{currentCount}
+   </select>
+   
+    <!-- 查询用户（待收货）订单的总条数-->
+   <select id="selectReadyToReceiveTotalCountByUid" parameterType="User" resultType="Integer">
+       select count(*) from orders where uid=#{uid} and status=3 
+   </select>
+   <!-- 根据用户的uid和当前页查询，该页用户的（待收货）订单信息 ,当mybatis需要传输多个参数，这里就不用写参数的类型,还要根据订单时间进行降序排序-->
+   <select id="selectReadyToReceiveOrderByUidAndCurrentPage" resultType="Order">
+       <!-- 根据用户uid进行分页查询，按订单时间进行降序排序 -->
+       select * from orders where uid=#{uid} and status=3  order by ordertime desc  limit #{currentStart},#{currentCount}
+   </select>
+   
+   <!-- 查询用户（待评价）订单的总条数-->
+   <select id="selectReadyToEvaluateTotalCountByUid" parameterType="User" resultType="Integer">
+       select count(*) from orders where uid=#{uid} and status=4 
+   </select>
+   <!-- 根据用户的uid和当前页查询，该页用户的（待评价）订单信息 ,当mybatis需要传输多个参数，这里就不用写参数的类型,还要根据订单时间进行降序排序-->
+   <select id="selectReadyToEvaluateOrderByUidAndCurrentPage" resultType="Order">
+       <!-- 根据用户uid进行分页查询，按订单时间进行降序排序 -->
+       select * from orders where uid=#{uid} and status=4  order by ordertime desc  limit #{currentStart},#{currentCount}
+   </select>
+   
+   <!-- 查询用户（已完成）订单的总条数-->
+   <select id="selectFinishOrderTotalCountByUid" parameterType="User" resultType="Integer">
+       select count(*) from orders where uid=#{uid} and status=5 
+   </select>
+   <!-- 根据用户的uid和当前页查询，该页用户的（已完成）订单信息 ,当mybatis需要传输多个参数，这里就不用写参数的类型,还要根据订单时间进行降序排序-->
+   <select id="selectFinishOrderByUidAndCurrentPage" resultType="Order">
+       <!-- 根据用户uid进行分页查询，按订单时间进行降序排序 -->
+       select * from orders where uid=#{uid} and status=5  order by ordertime desc  limit #{currentStart},#{currentCount}
+   </select>
+   
+    <!--根据订单id更新订单状态,更改订单状态为待发货，支付状态为已付款-->
+   <update id="updateOrderStatusByOid" parameterType="String">
+      update orders set status=2,payment_status=1 where oid=#{oid}
+   </update>
+   
+   
+   <!-- 根据订单号查询订单信息 -->
+    <select id="findOrderById" resultMap="OrderMap">
+      select * from orders where oid=#{oid}
+   </select>
+   <resultMap type="Order" id="OrderMap">
+       <id column="oid" property="oid"/>
+       <result column="ordertime" property="ordertime"/>
+       <result column="total" property="total"/>
+       <result column="payment_type" property="payment_type"/>
+       <result column="status" property="status"/>
+       <result column="receiver_name" property="receiver_name"/>
+       <result column="receiver_phone" property="receiver_phone"/>
+       <result column="receiver_address" property="receiver_address"/>
+       <!-- 订单和商品是多对一 -->
+       <association property="user" javaType="User">
+          <id column="uid" property="uid"/>
+       </association>
+   </resultMap>
+   
+   <!-- 更新订单状态为已完成 -->
+   <update id="evaOrder" parameterType="java.lang.String">
+		update orders set status=5 where oid=#{evaOrderId}
+	</update>
+	
+	<!--根据订单id更新订单状态-->
+   <update id="editOrderStatusByOid">
+      update orders set status=#{status} where oid=#{oid}  
+   </update>
+</mapper>

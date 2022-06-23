@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ping.mapper.EvaimgMapper">
+     <!-- 添加商品评价图片 -->
+    <insert id="addEvaimg" parameterType="Evaimg">
+		insert into evaimg(evaimg_name,eva_Id)
+		values(#{evaimg_name},#{eva_Id})
+	</insert>
+  
+    <select id="findEvaimgByEvaId" parameterType="Integer" resultType="Evaimg">
+		select * from evaimg where eva_Id=#{eva_Id}
+	</select>
+	
+</mapper>

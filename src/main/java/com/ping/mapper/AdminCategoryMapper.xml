@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ping.mapper.AdminCategoryMapper">
+  <!-- //在添加商品时候先查询所有分类信息进行回显供用户选择 -->
+  <select id="selectAllCategoryInfo" resultType="Category">
+    select * from category
+  </select>
+  
+  <select id="findAllCategoryBySplitPage" resultType="Category">
+		select * from category
+	</select>
+	<select id="findAllCategoryByLikeName" resultType="Category" parameterType="java.lang.String">
+		select * from category   where cname like '%${value}%'
+	</select>
+	
+	<!-- 管理员添加分类信息 ,默认返回是int类型-->
+   <insert id="saveProductCategory" parameterType="Category">
+       insert into category(cname) values(#{cname})
+   </insert>
+   
+   <update id="updateProductCategory" parameterType="Category">
+		update category
+		<set>
+			<if test="cname!=null and cname!=''">
+				cname=#{cname},
+			</if>
+		</set>
+		where cid=#{cid}
+	</update>
+	
+	<delete id="deleteProductCategory" parameterType="java.lang.Integer">
+		delete from category  where cid=#{cid}
+	</delete>
+</mapper>
